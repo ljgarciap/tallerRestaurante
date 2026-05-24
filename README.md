@@ -64,14 +64,14 @@ TallerRestaurante/
 ### 1. Clonar el repositorio
 Para clonar este proyecto de manera local, ejecuta la siguiente instrucción en tu consola de Git Bash:
 ```bash
-git clone https://github.com/equipoX/sigr.git
+git clone https://github.com/ljgarciap/tallerRestaurante.git
 ```
 
 ### 2. Cambiar de rama (Estable)
 Accede a la carpeta del proyecto y asegúrate de estar ubicado en la rama oficial de la línea base:
 ```bash
 cd TallerRestaurante
-git checkout main
+git checkout master
 ```
 
 ### 3. Ejecutar la Aplicación
@@ -96,9 +96,9 @@ Para probar los flujos restringidos por roles, puedes iniciar sesión utilizando
 
 ## Gestión de Configuración (Línea Base SIGR)
 
-- **Repositorio Oficial**: https://github.com/equipoX/sigr
-- **Rama Estable de Referencia**: main
-- **Hash del Último Commit del Hito**: a93b4f1
+- **Repositorio Oficial**: https://github.com/ljgarciap/tallerRestaurante
+- **Rama Estable de Referencia**: master
+- **Hash del Último Commit del Hito**: 1c87c44
 - **Herramientas de Soporte**:
   - Control de Versiones: Git & GitHub.
   - Gestión de Incidencias: GitHub Issues (para el registro de bugs futuros).

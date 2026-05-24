@@ -78,9 +78,9 @@ La línea base estable v1.0.0 del SIGR incluye los siguientes módulos funcional
 La gestión de configuración y control de versiones del proyecto se rige bajo los siguientes parámetros de Git:
 
 * **Herramienta de Control de Versiones:** Git (Sistema de Control de Versiones Distribuido).
-* **Repositorio Oficial de Desarrollo:** [https://github.com/equipoX/sigr](https://github.com/equipoX/sigr)
-* **Rama Principal Estable:** `main` (Rama protegida sobre la cual se declara la estabilidad y se realizan despliegues de producción).
-* **Commits Incluidos en la Línea Base:** Historial completo del código fuente inicial estable desde el commit de inicialización de estructura hasta el commit identificado con el Hash de Git: `a93b4f1`.
+* **Repositorio Oficial de Desarrollo:** [https://github.com/ljgarciap/tallerRestaurante](https://github.com/ljgarciap/tallerRestaurante)
+* **Rama Principal Estable:** `master` (Rama protegida sobre la cual se declara la estabilidad y se realizan despliegues de producción).
+* **Commits Incluidos en la Línea Base:** Historial completo del código fuente inicial estable desde el commit inicial identificado con el Hash `7a719be` hasta el commit estable del hito identificado con el Hash `1c87c44`.
 * **Esquema de Versionado:** Versionamiento Semántico (SemVer) bajo el hito **v1.0.0**.
 
 ---
@@ -116,7 +116,7 @@ Los siguientes archivos se encuentran creados e integrados en la raíz del proye
 * **Fecha de Creación y Establecimiento:** 24 de mayo de 2026.
 * **Validado por:** Luis José García Pinzón (Grupo de Desarrollo SIGR).
 * **Responsable de Aprobación:** Coordinador del Equipo / Docente Asignado del Curso de Gestión de Configuración.
-* **Estado de la Línea Base:** **APROBADO Y BLOQUEADO** (Ningún cambio posterior podrá aplicarse de forma directa sobre la rama `main` sin pasar por un proceso formal de solicitud de cambio, ramificación en `feature-branch` y aprobación de *Pull Request*).
+* **Estado de la Línea Base:** **APROBADO Y BLOQUEADO** (Ningún cambio posterior podrá aplicarse de forma directa sobre la rama `master` sin pasar por un proceso formal de solicitud de cambio, ramificación en `feature-branch` y aprobación de *Pull Request*).
 
 ---
 *Fin del Documento de Reporte Académico - SIGR Linea Base v1.0.0*
