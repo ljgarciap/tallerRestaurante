@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante</title>
+    <link rel="icon" type="image/png" href="assets/pizza.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="assets/logo.svg" alt="Restaurante" class="logo-img">
+                <span>Restaurante</span>
+            </div>
+            <button class="close-sidebar" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-module="pedidos">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Pedidos</span>
+            </a>
+            <a href="#" class="nav-item" data-module="reservas">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Reservas</span>
+            </a>
+            <a href="#" class="nav-item" data-module="menu">
+                <i class="fas fa-book-open"></i>
+                <span>Menú</span>
+            </a>
+            <a href="#" class="nav-item" data-module="usuarios">
+                <i class="fas fa-user-cog"></i>
+                <span>Usuarios</span>
+            </a>
+            <a href="#" class="nav-item" data-module="clientes">
+                <i class="fas fa-users"></i>
+                <span>Clientes</span>
+            </a>
+            <a href="#" class="nav-item" data-module="facturas">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Facturación</span>
+            </a>
+            <a href="#" class="nav-item" data-module="reportes">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reportes</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">Admin</span>
+                    <span class="user-role">Gerente</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="header-title">
+                <h1 id="moduleTitle">Pedidos</h1>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearch" placeholder="Buscar...">
+                </div>
+                <button class="header-btn" id="notificationsBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="content-area" id="contentArea">
+            <!-- MÓDULO PEDIDOS -->
+            <section class="module" id="module-pedidos">
+                <div class="module-header">
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e3f2fd;">
+                                <i class="fas fa-clock" style="color: #1976d2;"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="pedidosPendientes">0</span>
+                                <span class="stat-label">Pendientes</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e8f5e9;">
+                                <i class="fas fa-check-circle" style="color: #388e3c;"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="pedidosCompletados">0</span>
+                                <span class="stat-label">Completados</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fff3e0;">
+                                <i class="fas fa-dollar-sign" style="color: #f57c00;"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="ventasDia">$0</span>
+                                <span class="stat-label">Ventas del día</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="panel-left">
+                        <div class="panel-header">
+                            <h2>Menú del Restaurante</h2>
+                            <div class="filter-group">
+                                <select id="categoryFilter" class="filter-select">
+                                    <option value="all">Todas las categorías</option>
+                                    <option value="entradas">Entradas</option>
+                                    <option value="platos-fuertes">Platos Fuertes</option>
+                                    <option value="bebidas">Bebidas</option>
+                                    <option value="postres">Postres</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="menu-grid" id="menuGrid"></div>
+                    </div>
+                    <div class="panel-right">
+                        <div class="cart-panel">
+                            <div class="cart-header">
+                                <h3><i class="fas fa-shopping-basket"></i> Pedido Actual</h3>
+                                <button class="btn-clear" id="clearCart">Limpiar</button>
+                            </div>
+                            <div class="cart-items" id="cartItems"></div>
+                            <div class="cart-empty" id="cartEmpty">
+                                <i class="fas fa-shopping-cart"></i>
+                                <p>Sin productos</p>
+                            </div>
+                            <div class="cart-footer">
+                                <div class="form-group">
+                                    <label>Cliente</label>
+                                    <input type="text" id="clientePedido" placeholder="Nombre del cliente">
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo</label>
+                                    <select id="tipoPedido">
+                                        <option value="mesa">Para mesa</option>
+                                        <option value="domicilio">A domicilio</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="mesaGroup">
+                                    <label>Mesa</label>
+                                    <input type="number" id="numeroMesa" placeholder="#" min="1">
+                                </div>
+                                <div class="cart-total">
+                                    <span>Total:</span>
+                                    <span class="total-value" id="cartTotal">$0.00</span>
+                                </div>
+                                <button class="btn-primary" id="confirmarPedido">
+                                    <i class="fas fa-check"></i> Confirmar Pedido
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO RESERVAS -->
+            <section class="module hidden" id="module-reservas">
+                <div class="module-header">
+                    <div class="action-bar">
+                        <button class="btn-primary" id="nuevaReserva">
+                            <i class="fas fa-plus"></i> Nueva Reserva
+                        </button>
+                        <div class="date-filter">
+                            <input type="date" id="reservaFecha" class="date-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="reservas-list">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Teléfono</th>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Mesa</th>
+                                        <th>Personas</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reservasTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="reservas-calendar">
+                        <h3>Mesas Disponibles</h3>
+                        <div class="mesas-grid" id="mesasGrid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO MENÚ -->
+            <section class="module hidden" id="module-menu">
+                <div class="module-header">
+                    <div class="action-bar">
+                        <button class="btn-primary" id="nuevoPlatillo">
+                            <i class="fas fa-plus"></i> Agregar Platillo
+                        </button>
+                        <div class="filter-group">
+                            <select id="menuCategoryFilter" class="filter-select">
+                                <option value="all">Todas las categorías</option>
+                                <option value="entradas">Entradas</option>
+                                <option value="platos-fuertes">Platos Fuertes</option>
+                                <option value="bebidas">Bebidas</option>
+                                <option value="postres">Postres</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="menu-management-grid" id="menuManagementGrid"></div>
+                </div>
+            </section>
+
+            <!-- MÓDULO USUARIOS -->
+            <section class="module hidden" id="module-usuarios">
+                <div class="module-header">
+                    <div class="action-bar">
+                        <button class="btn-primary" id="nuevoUsuario">
+                            <i class="fas fa-plus"></i> Nuevo Usuario
+                        </button>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="usuarios-grid" id="usuariosGrid"></div>
+                </div>
+            </section>
+
+            <!-- MÓDULO CLIENTES -->
+            <section class="module hidden" id="module-clientes">
+                <div class="module-header">
+                    <div class="action-bar">
+                        <button class="btn-primary" id="nuevoCliente">
+                            <i class="fas fa-user-plus"></i> Nuevo Cliente
+                        </button>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="clienteSearch" placeholder="Buscar clientes...">
+                        </div>
+                        <div class="filter-group">
+                            <select id="clienteFiltroEstado" class="filter-select">
+                                <option value="all">Todos los estados</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="clientes-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Dirección</th>
+                                    <th>Total Pedidos</th>
+                                    <th>Gasto Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            <span id="paginationInfo">Mostrando 0 - 0 de 0 clientes</span>
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="prevPage" disabled>
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </button>
+                            <div class="pagination-pages" id="paginationPages"></div>
+                            <button class="pagination-btn" id="nextPage" disabled>
+                                Siguiente <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="pagination-per-page">
+                            <label>Por página:</label>
+                            <select id="perPageSelect" class="filter-select">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO FACTURAS -->
+            <section class="module hidden" id="module-facturas">
+                <div class="module-header">
+                    <div class="action-bar">
+                        <button class="btn-primary" id="nuevaFactura">
+                            <i class="fas fa-plus"></i> Nueva Factura
+                        </button>
+                        <div class="date-filter">
+                            <input type="date" id="facturaFechaInicio" class="date-input">
+                            <span>a</span>
+                            <input type="date" id="facturaFechaFin" class="date-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="facturas-list">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th># Factura</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="facturasTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="factura-summary">
+                        <div class="summary-card">
+                            <h4>Total Facturado</h4>
+                            <span class="summary-value" id="totalFacturado">$0.00</span>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Facturas Pagadas</h4>
+                            <span class="summary-value" id="facturasPagadas">0</span>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Facturas Pendientes</h4>
+                            <span class="summary-value" id="facturasPendientes">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MÓDULO REPORTES -->
+            <section class="module hidden" id="module-reportes">
+                <div class="module-header">
+                    <div class="action-bar">
+                        <select id="reporteTipo" class="filter-select">
+                            <option value="ventas">Reporte de Ventas</option>
+                            <option value="productos">Productos Más Vendidos</option>
+                            <option value="clientes">Clientes Frecuentes</option>
+                            <option value="reservas">Reservas</option>
+                        </select>
+                        <div class="date-filter">
+                            <input type="date" id="reporteFechaInicio" class="date-input">
+                            <span>a</span>
+                            <input type="date" id="reporteFechaFin" class="date-input">
+                        </div>
+                        <button class="btn-secondary" id="generarReporte">
+                            <i class="fas fa-chart-line"></i> Generar
+                        </button>
+                    </div>
+                </div>
+                <div class="module-body">
+                    <div class="report-content">
+                        <div class="chart-container" id="chartContainer">
+                            <div class="chart-placeholder">
+                                <i class="fas fa-chart-bar"></i>
+                                <p>Seleccione tipo de reporte y fechas</p>
+                            </div>
+                        </div>
+                        <div class="report-summary" id="reportSummary"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODALES -->
+    
+    <!-- Modal Nueva Reserva -->
+    <div class="modal" id="reservaModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-plus"></i> Nueva Reserva</h2>
+                <button class="modal-close" data-close="reservaModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form class="modal-form" id="reservaForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="reservaCliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="reservaTelefono" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="reservaFechaInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora</label>
+                        <select id="reservaHora" required>
+                            <option value="">Seleccionar</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="19:30">19:30</option>
+                            <option value="20:00">20:00</option>
+                            <option value="20:30">20:30</option>
+                            <option value="21:00">21:00</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Número de Personas</label>
+                        <input type="number" id="reservaPersonas" min="1" max="20" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mesa</label>
+                        <select id="reservaMesa">
+                            <option value="">Automático</option>
+                            <option value="1">Mesa 1 (2 personas)</option>
+                            <option value="2">Mesa 2 (4 personas)</option>
+                            <option value="3">Mesa 3 (4 personas)</option>
+                            <option value="4">Mesa 4 (6 personas)</option>
+                            <option value="5">Mesa 5 (8 personas)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea id="reservaNotas" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" data-close="reservaModal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo/Editar Platillo -->
+    <div class="modal" id="platilloModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-utensils"></i> <span id="platilloModalTitle">Nuevo Platillo</span></h2>
+                <button class="modal-close" data-close="platilloModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form class="modal-form" id="platilloForm">
+                <input type="hidden" id="platilloId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="platilloNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="platilloCategoria" required>
+                            <option value="entradas">Entradas</option>
+                            <option value="platos-fuertes">Platos Fuertes</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="postres">Postres</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="platilloDescripcion" rows="2" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio ($)</label>
+                        <input type="number" id="platilloPrecio" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Disponibilidad</label>
+                        <select id="platilloDisponibilidad">
+                            <option value="disponible">Disponible</option>
+                            <option value="no-disponible">No Disponible</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>URL de Imagen</label>
+                    <input type="url" id="platilloImagen" placeholder="https://...">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" data-close="platilloModal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Usuario -->
+    <div class="modal" id="usuarioModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> <span id="usuarioModalTitle">Nuevo Usuario</span></h2>
+                <button class="modal-close" data-close="usuarioModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form class="modal-form" id="usuarioForm">
+                <input type="hidden" id="usuarioId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="usuarioNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" id="usuarioApellido" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="usuarioEmail" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="usuarioTelefono">
+                    </div>
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="usuarioRol" required>
+                            <option value="mesero">Mesero</option>
+                            <option value="cocinero">Cocinero</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" data-close="usuarioModal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Factura -->
+    <div class="modal" id="facturaModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice"></i> <span id="facturaModalTitle">Nueva Factura</span></h2>
+                <button class="modal-close" data-close="facturaModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form class="modal-form" id="facturaForm">
+                <input type="hidden" id="facturaId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="facturaCliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="facturaTipo" required>
+                            <option value="contado">Contado</option>
+                            <option value="crédito">Crédito</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Emisión</label>
+                        <input type="date" id="facturaFechaEmision" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Vencimiento</label>
+                        <input type="date" id="facturaFechaVencimiento">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Items</label>
+                    <div class="factura-items">
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unit.</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="facturaItemsBody"></tbody>
+                        </table>
+                        <button type="button" class="btn-add-item" id="addFacturaItem">
+                            <i class="fas fa-plus"></i> Agregar Item
+                        </button>
+                    </div>
+                </div>
+                <div class="factura-totals">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="facturaSubtotal">$0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>IVA (16%):</span>
+                        <span id="facturaIVA">$0.00</span>
+                    </div>
+                    <div class="total-row total-final">
+                        <span>Total:</span>
+                        <span id="facturaTotal">$0.00</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" data-close="facturaModal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Generar Factura</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Cliente -->
+    <div class="modal" id="clienteModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-user"></i> <span id="clienteModalTitle">Nuevo Cliente</span></h2>
+                <button class="modal-close" data-close="clienteModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form class="modal-form" id="clienteForm">
+                <input type="hidden" id="clienteId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="clienteNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" id="clienteApellido" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="clienteEmail" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="clienteTelefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="clienteEstado" required>
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <textarea id="clienteDireccion" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" data-close="clienteModal">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Fijo -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="assets/1.png" alt="Logo" class="footer-logo-img" />
+            </div>
+            <div class="footer-text">
+                <span class="footer-name">Realizado por Carlos Carrascal</span>
+                <span class="footer-copy">© 2026 Restaurante</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Mensaje</span>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
