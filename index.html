@@ -54,14 +54,17 @@
         </nav>
         <div class="sidebar-footer">
             <div class="user-info">
-                <div class="user-avatar">
+                <div class="user-avatar" id="currentUserAvatar">
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="user-details">
-                    <span class="user-name">Admin</span>
-                    <span class="user-role">Gerente</span>
+                    <span class="user-name" id="currentUserName">Admin</span>
+                    <span class="user-role" id="currentUserRole">Gerente</span>
                 </div>
             </div>
+            <button class="btn-logout" id="logoutBtn" title="Cerrar Sesión">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
     </aside>
 
@@ -119,61 +122,107 @@
                         </div>
                     </div>
                 </div>
-                <div class="module-body">
-                    <div class="panel-left">
-                        <div class="panel-header">
-                            <h2>Menú del Restaurante</h2>
-                            <div class="filter-group">
-                                <select id="categoryFilter" class="filter-select">
-                                    <option value="all">Todas las categorías</option>
-                                    <option value="entradas">Entradas</option>
-                                    <option value="platos-fuertes">Platos Fuertes</option>
-                                    <option value="bebidas">Bebidas</option>
-                                    <option value="postres">Postres</option>
+                <!-- Pestañas internas para Pedidos (Línea Base SIGR) -->
+                <div class="pedidos-tabs" style="margin-top: 1.5rem; display: flex; gap: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                    <button class="tab-btn active" data-tab="registrar" style="background: none; border: none; padding: 0.5rem 1rem; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; color: var(--primary); border-bottom: 3px solid var(--primary); margin-bottom: -0.7rem; transition: var(--transition);">
+                        <i class="fas fa-plus-circle"></i> Registrar Pedido
+                    </button>
+                    <button class="tab-btn" data-tab="administrar" style="background: none; border: none; padding: 0.5rem 1rem; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; color: var(--text-light); border-bottom: 3px solid transparent; margin-bottom: -0.7rem; transition: var(--transition);">
+                        <i class="fas fa-tasks"></i> Administrar Pedidos
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Vista de Registro de Pedido -->
+            <div class="module-body" id="pedidos-body-registrar">
+                <div class="panel-left">
+                    <div class="panel-header">
+                        <h2>Menú del Restaurante</h2>
+                        <div class="filter-group">
+                            <select id="categoryFilter" class="filter-select">
+                                <option value="all">Todas las categorías</option>
+                                <option value="entradas">Entradas</option>
+                                <option value="platos-fuertes">Platos Fuertes</option>
+                                <option value="bebidas">Bebidas</option>
+                                <option value="postres">Postres</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="menu-grid" id="menuGrid"></div>
+                </div>
+                <div class="panel-right">
+                    <div class="cart-panel">
+                        <div class="cart-header">
+                            <h3><i class="fas fa-shopping-basket"></i> Pedido Actual</h3>
+                            <button class="btn-clear" id="clearCart">Limpiar</button>
+                        </div>
+                        <div class="cart-items" id="cartItems"></div>
+                        <div class="cart-empty" id="cartEmpty">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Sin productos</p>
+                        </div>
+                        <div class="cart-footer">
+                            <div class="form-group">
+                                <label>Cliente</label>
+                                <input type="text" id="clientePedido" placeholder="Nombre del cliente">
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo</label>
+                                <select id="tipoPedido">
+                                    <option value="mesa">Para mesa</option>
+                                    <option value="domicilio">A domicilio</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="menu-grid" id="menuGrid"></div>
-                    </div>
-                    <div class="panel-right">
-                        <div class="cart-panel">
-                            <div class="cart-header">
-                                <h3><i class="fas fa-shopping-basket"></i> Pedido Actual</h3>
-                                <button class="btn-clear" id="clearCart">Limpiar</button>
+                            <div class="form-group" id="mesaGroup">
+                                <label>Mesa</label>
+                                <input type="number" id="numeroMesa" placeholder="#" min="1">
                             </div>
-                            <div class="cart-items" id="cartItems"></div>
-                            <div class="cart-empty" id="cartEmpty">
-                                <i class="fas fa-shopping-cart"></i>
-                                <p>Sin productos</p>
+                            <div class="cart-total">
+                                <span>Total:</span>
+                                <span class="total-value" id="cartTotal">$0.00</span>
                             </div>
-                            <div class="cart-footer">
-                                <div class="form-group">
-                                    <label>Cliente</label>
-                                    <input type="text" id="clientePedido" placeholder="Nombre del cliente">
-                                </div>
-                                <div class="form-group">
-                                    <label>Tipo</label>
-                                    <select id="tipoPedido">
-                                        <option value="mesa">Para mesa</option>
-                                        <option value="domicilio">A domicilio</option>
-                                    </select>
-                                </div>
-                                <div class="form-group" id="mesaGroup">
-                                    <label>Mesa</label>
-                                    <input type="number" id="numeroMesa" placeholder="#" min="1">
-                                </div>
-                                <div class="cart-total">
-                                    <span>Total:</span>
-                                    <span class="total-value" id="cartTotal">$0.00</span>
-                                </div>
-                                <button class="btn-primary" id="confirmarPedido">
-                                    <i class="fas fa-check"></i> Confirmar Pedido
-                                </button>
-                            </div>
+                            <button class="btn-primary" id="confirmarPedido">
+                                <i class="fas fa-check"></i> Confirmar Pedido
+                            </button>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Vista de Administración y Seguimiento de Pedidos (Línea Base SIGR) -->
+            <div class="module-body hidden" id="pedidos-body-administrar" style="grid-template-columns: 1fr !important;">
+                <div class="pedidos-list-panel" style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; width: 100%;">
+                    <div class="panel-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h2 style="font-size: 1.25rem; color: var(--secondary);">Cola de Pedidos en Tiempo Real</h2>
+                        <div class="filter-group">
+                            <select id="orderStatusFilter" class="filter-select">
+                                <option value="all">Todos los estados</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="completado">Completados</option>
+                                <option value="cancelado">Cancelados</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID Pedido</th>
+                                    <th>Cliente</th>
+                                    <th>Tipo</th>
+                                    <th>Mesa / Detalles</th>
+                                    <th>Platillos</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pedidosTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
 
             <!-- MÓDULO RESERVAS -->
             <section class="module hidden" id="module-reservas">
@@ -697,6 +746,85 @@
         </div>
     </div>
 
+    <!-- Modal Detalle Factura / Recibo Comercial (Línea Base SIGR) -->
+    <div class="modal" id="facturaDetailModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container modal-lg" style="max-width: 550px !important;">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice"></i> Detalle de Factura / Recibo</h2>
+                <button class="modal-close" data-close="facturaDetailModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body print-area" id="facturaPrintArea" style="padding: 2rem;">
+                <div class="receipt-header" style="text-align: center; margin-bottom: 1.5rem; border-bottom: 2px dashed var(--border); padding-bottom: 1rem;">
+                    <i class="fas fa-utensils" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.25rem;">EL GOURMET</h1>
+                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.1rem;">Av. Principal 123, Col. Centro</p>
+                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.1rem;">Teléfono: 555-GOURMET</p>
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-top: 0.5rem;" id="detailFacturaId">FACTURA #0000</p>
+                </div>
+                
+                <div class="receipt-info" style="margin-bottom: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem;">
+                    <div>
+                        <p style="color: var(--text-light); margin-bottom: 0.15rem;"><strong>Cliente:</strong></p>
+                        <p id="detailFacturaCliente" style="font-weight: 600;">Nombre del Cliente</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="color: var(--text-light); margin-bottom: 0.15rem;"><strong>Fecha:</strong></p>
+                        <p id="detailFacturaFecha">00/00/0000</p>
+                    </div>
+                    <div>
+                        <p style="color: var(--text-light); margin-bottom: 0.15rem;"><strong>Tipo Pago:</strong></p>
+                        <p id="detailFacturaTipo" style="text-transform: capitalize;">Contado</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="color: var(--text-light); margin-bottom: 0.15rem;"><strong>Estado:</strong></p>
+                        <span id="detailFacturaEstadoBadge" class="status-badge">PAGADA</span>
+                    </div>
+                </div>
+                
+                <div class="receipt-items" style="margin-bottom: 1.5rem;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border); border-top: 2px solid var(--border);">
+                                <th style="text-align: left; padding: 0.5rem 0;">Descripción</th>
+                                <th style="text-align: center; padding: 0.5rem 0; width: 80px;">Cant.</th>
+                                <th style="text-align: right; padding: 0.5rem 0; width: 100px;">Precio U.</th>
+                                <th style="text-align: right; padding: 0.5rem 0; width: 100px;">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailFacturaItemsBody">
+                            <!-- Dinámico -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="receipt-totals" style="border-top: 2px dashed var(--border); padding-top: 1rem; width: 100%; font-size: 0.9rem; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>Subtotal:</span>
+                        <strong id="detailFacturaSubtotal">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>IVA (16%):</span>
+                        <strong id="detailFacturaIVA">$0.00</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px; font-size: 1.1rem; border-top: 1.5px solid var(--border); padding-top: 0.5rem; margin-top: 0.25rem;">
+                        <span style="color: var(--secondary); font-weight: 700;">TOTAL:</span>
+                        <strong style="color: var(--primary); font-weight: 700;" id="detailFacturaTotal">$0.00</strong>
+                    </div>
+                </div>
+                
+                <div class="receipt-footer" style="text-align: center; margin-top: 2rem; border-top: 1px dashed var(--border); padding-top: 1rem; font-size: 0.8rem; color: var(--text-light);">
+                    <p style="margin-bottom: 0.25rem;">¡Gracias por su visita!</p>
+                    <p>Resolución de Factura Electrónica Basada en SIGR</p>
+                </div>
+            </div>
+            <div class="modal-actions" style="background: var(--background); padding: 1rem 1.5rem;">
+                <button type="button" class="btn-secondary" data-close="facturaDetailModal"><i class="fas fa-times"></i> Cerrar</button>
+                <button type="button" class="btn-primary" id="printFacturaBtn" style="background: #3f51b5;"><i class="fas fa-print"></i> Imprimir Recibo</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Fijo -->
     <footer class="footer">
         <div class="footer-content">
@@ -704,7 +832,7 @@
                 <img src="assets/1.png" alt="Logo" class="footer-logo-img" />
             </div>
             <div class="footer-text">
-                <span class="footer-name">Realizado por Carlos Carrascal</span>
+                <span class="footer-name">Realizado por Carlos Carrascal y Ajustado por Luis García</span>
                 <span class="footer-copy">© 2026 Restaurante</span>
             </div>
         </div>
@@ -714,6 +842,40 @@
     <div class="toast" id="toast">
         <i class="fas fa-check-circle"></i>
         <span id="toastMessage">Mensaje</span>
+    </div>
+
+    <!-- Pantalla de Login (Línea Base SIGR) -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-utensils login-logo-icon"></i>
+                <h2>El Gourmet</h2>
+                <p>Sistema Integral de Gestión de Restaurante (SIGR)</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="loginUser">Seleccionar Usuario de Prueba</label>
+                    <select id="loginUser" required>
+                        <option value="">-- Seleccionar --</option>
+                        <option value="carlos@gourmet.com">Carlos García (Gerente / Admin)</option>
+                        <option value="maria@gourmet.com">María López (Mesero)</option>
+                        <option value="jose@gourmet.com">José Martínez (Cocinero)</option>
+                        <option value="ana@gourmet.com">Ana Rodríguez (Mesero)</option>
+                        <option value="luis@gourmet.com">Luis Hernández (Cocinero)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña de Acceso</label>
+                    <input type="password" id="loginPassword" value="123456" required>
+                </div>
+                <button type="submit" class="btn-primary btn-block" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </form>
+            <div class="login-footer">
+                <span>Línea Base Estabilidad v1.0.0</span>
+            </div>
+        </div>
     </div>
 
     <script src="js/script.js"></script>

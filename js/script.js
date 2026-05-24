@@ -147,13 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
 function initApp() {
     setupNavigation();
     setupEventListeners();
-    renderPedidos();
+    renderMenu();
+    renderCart();
     renderReservas();
     renderMenuManagement();
     renderUsuarios();
     renderClientes();
     renderFacturas();
     updateStats();
+    checkAuthSession();
 }
 
 function setupNavigation() {
@@ -209,6 +211,32 @@ function setupEventListeners() {
         document.getElementById('mesaGroup').style.display = 
             e.target.value === 'mesa' ? 'block' : 'none';
     });
+
+    // Pestañas de Pedidos e historial (Línea Base SIGR)
+    document.querySelectorAll('.pedidos-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.pedidos-tabs .tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.color = 'var(--text-light)';
+                b.style.borderBottomColor = 'transparent';
+            });
+            btn.classList.add('active');
+            btn.style.color = 'var(--primary)';
+            btn.style.borderBottomColor = 'var(--primary)';
+            
+            const tab = btn.dataset.tab;
+            if (tab === 'registrar') {
+                document.getElementById('pedidos-body-registrar').classList.remove('hidden');
+                document.getElementById('pedidos-body-administrar').classList.add('hidden');
+            } else {
+                document.getElementById('pedidos-body-registrar').classList.add('hidden');
+                document.getElementById('pedidos-body-administrar').classList.remove('hidden');
+                renderPedidosList();
+            }
+        });
+    });
+    
+    document.getElementById('orderStatusFilter').addEventListener('change', renderPedidosList);
 
     // Reservas
     document.getElementById('nuevaReserva').addEventListener('click', () => openModal('reservaModal'));
@@ -292,6 +320,13 @@ function setupEventListeners() {
 
     // Reportes
     document.getElementById('generarReporte').addEventListener('click', generarReporte);
+
+    // Autenticación (Línea Base SIGR)
+    document.getElementById('loginForm').addEventListener('submit', handleLoginSubmit);
+    document.getElementById('logoutBtn').addEventListener('click', handleLogoutClick);
+
+    // Buscador Global (Línea Base SIGR)
+    document.getElementById('globalSearch').addEventListener('input', handleGlobalSearch);
 }
 
 // ============= MODULO PEDIDOS =============
@@ -414,11 +449,11 @@ function confirmPedido() {
         return;
     }
 
-    const cliente = document.getElementById('clientePedido').value;
+    const clienteName = document.getElementById('clientePedido').value.trim();
     const tipo = document.getElementById('tipoPedido').value;
     const mesa = document.getElementById('numeroMesa').value;
 
-    if (!cliente) {
+    if (!clienteName) {
         showToast('Ingrese nombre del cliente', 'error');
         return;
     }
@@ -426,7 +461,7 @@ function confirmPedido() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const pedido = {
         id: Date.now(),
-        cliente,
+        cliente: clienteName,
         tipo,
         mesa: tipo === 'mesa' ? mesa : null,
         items: [...cart],
@@ -438,12 +473,168 @@ function confirmPedido() {
     pedidos.push(pedido);
     localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
+    // Integración Pedidos -> Clientes (Línea Base SIGR)
+    vincularClientePedido(clienteName, total);
+
     clearCart();
     document.getElementById('clientePedido').value = '';
     document.getElementById('numeroMesa').value = '';
 
     updateStats();
     showToast(`Pedido #${pedido.id} confirmado`);
+}
+
+function vincularClientePedido(nombreCompleto, totalGasto) {
+    const parts = nombreCompleto.split(' ');
+    const nombre = parts[0] || 'Cliente';
+    const apellido = parts.slice(1).join(' ') || 'Nuevo';
+    
+    const existing = clientes.find(c => (c.nombre + ' ' + c.apellido).toLowerCase() === nombreCompleto.toLowerCase());
+    
+    if (existing) {
+        existing.totalPedidos++;
+        existing.gastoTotal += totalGasto;
+    } else {
+        const nuevoCliente = {
+            id: Date.now(),
+            nombre,
+            apellido,
+            email: `${nombre.toLowerCase()}.${apellido.toLowerCase().replace(/\s+/g, '') || 'nuevo'}@temp.com`,
+            telefono: '555-0000',
+            direccion: 'Registrado en Pedido',
+            estado: 'activo',
+            totalPedidos: 1,
+            gastoTotal: totalGasto
+        };
+        clientes.push(nuevoCliente);
+    }
+    localStorage.setItem('clientes', JSON.stringify(clientes));
+    renderClientes();
+}
+
+function renderPedidosList() {
+    const tbody = document.getElementById('pedidosTableBody');
+    const filter = document.getElementById('orderStatusFilter').value;
+    
+    let filtered = pedidos;
+    if (filter !== 'all') {
+        filtered = pedidos.filter(p => p.estado === filter);
+    }
+    
+    // Ordenar por ID descendente
+    filtered.sort((a, b) => b.id - a.id);
+    
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-light);">
+                    <i class="fas fa-receipt" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                    No hay pedidos para mostrar
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = filtered.map(p => {
+        const platillosStr = p.items.map(item => `${item.name} (${item.quantity})`).join(', ');
+        const mesaDetalle = p.tipo === 'mesa' ? `Mesa ${p.mesa}` : 'A domicilio';
+        
+        return `
+            <tr>
+                <td>#${p.id}</td>
+                <td><strong>${p.cliente}</strong></td>
+                <td><span style="text-transform: capitalize;">${p.tipo}</span></td>
+                <td>${mesaDetalle}</td>
+                <td title="${platillosStr}"><span class="ellipsis" style="max-width: 250px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${platillosStr}</span></td>
+                <td><strong>$${p.total.toFixed(2)}</strong></td>
+                <td><span class="status-badge status-${p.estado}">${p.estado}</span></td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        ${p.estado === 'pendiente' ? `
+                            <button class="btn-edit" onclick="updatePedidoEstado(${p.id}, 'completado')" title="Completar Pedido" style="color: var(--success);">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn-delete" onclick="updatePedidoEstado(${p.id}, 'cancelado')" title="Cancelar Pedido">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                        
+                        ${p.estado === 'completado' ? `
+                            <button class="btn-edit" onclick="generarFacturaDesdePedido(${p.id})" title="Generar Factura" style="color: #3f51b5;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </button>
+                        ` : ''}
+                        
+                        <button class="btn-delete" onclick="deletePedido(${p.id})" title="Eliminar del Historial">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updatePedidoEstado(id, nuevoEstado) {
+    const pedido = pedidos.find(p => p.id === id);
+    if (pedido) {
+        pedido.estado = nuevoEstado;
+        localStorage.setItem('pedidos', JSON.stringify(pedidos));
+        renderPedidosList();
+        updateStats();
+        showToast(`Pedido marcado como ${nuevoEstado}`);
+    }
+}
+
+function deletePedido(id) {
+    if (confirm('¿Eliminar este pedido permanentemente?')) {
+        pedidos = pedidos.filter(p => p.id !== id);
+        localStorage.setItem('pedidos', JSON.stringify(pedidos));
+        renderPedidosList();
+        updateStats();
+        showToast('Pedido eliminado del historial');
+    }
+}
+
+function generarFacturaDesdePedido(pedidoId) {
+    const pedido = pedidos.find(p => p.id === pedidoId);
+    if (!pedido) return;
+    
+    // Switch to billing module
+    switchModule('facturas');
+    
+    // Open Invoice Modal
+    document.getElementById('facturaModalTitle').textContent = 'Nueva Factura (Desde Pedido)';
+    document.getElementById('facturaForm').reset();
+    document.getElementById('facturaId').value = '';
+    
+    // Autofill details
+    document.getElementById('facturaCliente').value = pedido.cliente;
+    document.getElementById('facturaFechaEmision').value = new Date().toISOString().split('T')[0];
+    document.getElementById('facturaTipo').value = pedido.tipo === 'mesa' ? 'contado' : 'crédito';
+    
+    // Map order items to invoice items
+    facturaItems = pedido.items.map(item => ({
+        descripcion: item.name,
+        cantidad: item.quantity,
+        precio: item.price
+    }));
+    
+    // Render invoice items inside the modal
+    const tbody = document.getElementById('facturaItemsBody');
+    tbody.innerHTML = facturaItems.map((item, index) => `
+        <tr>
+            <td><input type="text" value="${item.descripcion}" onchange="updateFacturaItem(${index}, 'descripcion', this.value)"></td>
+            <td><input type="number" value="${item.cantidad}" min="1" onchange="updateFacturaItem(${index}, 'cantidad', this.value)"></td>
+            <td><input type="number" value="${item.precio}" step="0.01" onchange="updateFacturaItem(${index}, 'precio', this.value)"></td>
+            <td>$${(item.cantidad * item.precio).toFixed(2)}</td>
+            <td><button class="btn-delete" onclick="removeFacturaItem(${index})"><i class="fas fa-times"></i></button></td>
+        </tr>
+    `).join('');
+    
+    updateFacturaTotals();
+    openModal('facturaModal');
 }
 
 function updateStats() {
@@ -849,7 +1040,45 @@ function updateFacturaEstado(id, estado) {
 function viewFactura(id) {
     const factura = facturas.find(f => f.id === id);
     if (!factura) return;
-    alert(`Factura #${factura.id}\nCliente: ${factura.cliente}\nTotal: $${factura.total.toFixed(2)}\nEstado: ${factura.estado}`);
+
+    // Llenar campos del modal
+    document.getElementById('detailFacturaId').textContent = `FACTURA #${factura.id}`;
+    document.getElementById('detailFacturaCliente').textContent = factura.cliente;
+    document.getElementById('detailFacturaFecha').textContent = formatDate(factura.fecha);
+    document.getElementById('detailFacturaTipo').textContent = factura.tipo;
+    
+    // Estado y Badge
+    const badge = document.getElementById('detailFacturaEstadoBadge');
+    badge.textContent = factura.estado.toUpperCase();
+    badge.className = `status-badge status-${factura.estado}`;
+
+    // Renderizar tabla de artículos
+    const tbody = document.getElementById('detailFacturaItemsBody');
+    if (factura.items && factura.items.length > 0) {
+        tbody.innerHTML = factura.items.map(item => `
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 0.5rem 0; text-align: left;">${item.descripcion}</td>
+                <td style="padding: 0.5rem 0; text-align: center;">${item.cantidad}</td>
+                <td style="padding: 0.5rem 0; text-align: right;">$${item.precio.toFixed(2)}</td>
+                <td style="padding: 0.5rem 0; text-align: right; font-weight: 500;">$${(item.cantidad * item.precio).toFixed(2)}</td>
+            </tr>
+        `).join('');
+    } else {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:1rem;">Sin ítems registrados</td></tr>`;
+    }
+
+    // Totales
+    document.getElementById('detailFacturaSubtotal').textContent = `$${factura.subtotal.toFixed(2)}`;
+    document.getElementById('detailFacturaIVA').textContent = `$${factura.iva.toFixed(2)}`;
+    document.getElementById('detailFacturaTotal').textContent = `$${factura.total.toFixed(2)}`;
+
+    // Listener para botón de imprimir
+    document.getElementById('printFacturaBtn').onclick = function() {
+        window.print();
+    };
+
+    // Abrir Modal
+    openModal('facturaDetailModal');
 }
 
 // ============= MODULO REPORTES =============
@@ -858,67 +1087,88 @@ function generarReporte() {
     const tipo = document.getElementById('reporteTipo').value;
     const container = document.getElementById('chartContainer');
     const summary = document.getElementById('reportSummary');
+    const fechaInicio = document.getElementById('reporteFechaInicio').value;
+    const fechaFin = document.getElementById('reporteFechaFin').value;
+
+    let filteredPedidos = pedidos;
+    if (fechaInicio && fechaFin) {
+        filteredPedidos = pedidos.filter(p => {
+            const pDate = p.fecha.split('T')[0];
+            return pDate >= fechaInicio && pDate <= fechaFin;
+        });
+    }
 
     let reportData = [];
     let reportTitle = '';
 
-    switch (tipo) {
-        case 'ventas':
-            reportTitle = 'Reporte de Ventas';
-            reportData = [
-                { label: 'Lunes', value: 1250 },
-                { label: 'Martes', value: 980 },
-                { label: 'Miércoles', value: 1560 },
-                { label: 'Jueves', value: 1420 },
-                { label: 'Viernes', value: 2100 },
-                { label: 'Sábado', value: 2800 },
-                { label: 'Domingo', value: 1950 }
-            ];
-            break;
-        case 'productos':
-            reportTitle = 'Productos Más Vendidos';
-            reportData = [
-                { label: 'Ribeye Steak', value: 45 },
-                { label: 'Pasta Carbonara', value: 38 },
-                { label: 'Burger Gourmet', value: 35 },
-                { label: 'Salmón Grillado', value: 28 },
-                { label: 'Tiramisú', value: 22 }
-            ];
-            break;
-        case 'clientes':
-            reportTitle = 'Clientes Frecuentes';
-            reportData = [
-                { label: 'Carlos García', value: 12 },
-                { label: 'María López', value: 9 },
-                { label: 'José Martínez', value: 7 },
-                { label: 'Ana Rodríguez', value: 6 },
-                { label: 'Luis Hernández', value: 5 }
-            ];
-            break;
-        case 'reservas':
-            reportTitle = 'Reservas por Día';
-            reportData = [
-                { label: 'Lunes', value: 8 },
-                { label: 'Martes', value: 5 },
-                { label: 'Miércoles', value: 7 },
-                { label: 'Jueves', value: 10 },
-                { label: 'Viernes', value: 15 },
-                { label: 'Sábado', value: 20 },
-                { label: 'Domingo', value: 12 }
-            ];
-            break;
+    if (tipo === 'ventas') {
+        reportTitle = 'Reporte de Ventas';
+        const daysMap = { 'Lunes': 0, 'Martes': 0, 'Miércoles': 0, 'Jueves': 0, 'Viernes': 0, 'Sábado': 0, 'Domingo': 0 };
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        
+        filteredPedidos.filter(p => p.estado === 'completado').forEach(p => {
+            const date = new Date(p.fecha);
+            const dayName = dayNames[date.getDay()];
+            daysMap[dayName] += p.total;
+        });
+        
+        reportData = Object.keys(daysMap).map(d => ({ label: d, value: parseFloat(daysMap[d].toFixed(2)) }));
+    } else if (tipo === 'productos') {
+        reportTitle = 'Productos Más Vendidos';
+        const itemsMap = {};
+        filteredPedidos.filter(p => p.estado === 'completado').forEach(p => {
+            p.items.forEach(item => {
+                itemsMap[item.name] = (itemsMap[item.name] || 0) + item.quantity;
+            });
+        });
+        
+        const sorted = Object.keys(itemsMap).map(k => ({ label: k, value: itemsMap[k] }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+        
+        reportData = sorted.length > 0 ? sorted : [{ label: 'Sin datos', value: 0 }];
+    } else if (tipo === 'clientes') {
+        reportTitle = 'Clientes Frecuentes';
+        const clientsMap = {};
+        filteredPedidos.filter(p => p.estado === 'completado').forEach(p => {
+            clientsMap[p.cliente] = (clientsMap[p.cliente] || 0) + p.total;
+        });
+        
+        const sorted = Object.keys(clientsMap).map(k => ({ label: k, value: parseFloat(clientsMap[k].toFixed(2)) }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 5);
+            
+        reportData = sorted.length > 0 ? sorted : [{ label: 'Sin datos', value: 0 }];
+    } else if (tipo === 'reservas') {
+        reportTitle = 'Reservas por Día';
+        const daysMap = { 'Lunes': 0, 'Martes': 0, 'Miércoles': 0, 'Jueves': 0, 'Viernes': 0, 'Sábado': 0, 'Domingo': 0 };
+        const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        
+        let filteredReservas = reservas;
+        if (fechaInicio && fechaFin) {
+            filteredReservas = reservas.filter(r => r.fecha >= fechaInicio && r.fecha <= fechaFin);
+        }
+        
+        filteredReservas.filter(r => r.estado === 'confirmada' || r.estado === 'completada').forEach(r => {
+            const date = new Date(r.fecha + 'T00:00:00');
+            const dayName = dayNames[date.getDay()];
+            daysMap[dayName]++;
+        });
+        
+        reportData = Object.keys(daysMap).map(d => ({ label: d, value: daysMap[d] }));
     }
 
-    const maxValue = Math.max(...reportData.map(d => d.value));
+    const maxValue = Math.max(...reportData.map(d => d.value)) || 1;
 
     container.innerHTML = `
-        <div class="bar-chart">
+        <div class="bar-chart" style="width: 100%;">
+            <h4 style="margin-bottom: 1rem; color: var(--secondary);">${reportTitle}</h4>
             ${reportData.map(d => `
-                <div class="bar-item">
-                    <div class="bar-label">${d.label}</div>
-                    <div class="bar-container">
-                        <div class="bar" style="width: ${(d.value / maxValue) * 100}%">
-                            <span>${d.value}</span>
+                <div class="bar-item" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem;">
+                    <div class="bar-label" style="min-width: 150px; font-weight: 500;">${d.label}</div>
+                    <div class="bar-container" style="background: #f0f2f5; border-radius: var(--radius-sm); overflow: hidden; height: 28px; flex: 1; display: flex; align-items: center;">
+                        <div class="bar" style="width: ${d.value > 0 ? (d.value / maxValue) * 100 : 5}%; background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%); height: 100%; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: flex-end; padding-right: 0.75rem; color: white; font-size: 0.8rem; font-weight: 600; transition: width 0.6s ease;">
+                            <span>${tipo === 'ventas' || tipo === 'clientes' ? '$' : ''}${d.value}</span>
                         </div>
                     </div>
                 </div>
@@ -930,24 +1180,18 @@ function generarReporte() {
     const promedio = (total / reportData.length).toFixed(1);
 
     summary.innerHTML = `
-        <div class="report-summary-grid">
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-value">${total}</span>
-                    <span class="stat-label">Total ${tipo}</span>
-                </div>
+        <div class="report-summary-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+            <div class="stat-card" style="padding: 1rem; border-radius: var(--radius); box-shadow: var(--shadow); background: white; display: flex; flex-direction: column;">
+                <span class="stat-value" style="color: var(--primary); font-size: 1.5rem;">${tipo === 'ventas' || tipo === 'clientes' ? '$' : ''}${total.toFixed(2)}</span>
+                <span class="stat-label">Suma Total</span>
             </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-value">${promedio}</span>
-                    <span class="stat-label">Promedio</span>
-                </div>
+            <div class="stat-card" style="padding: 1rem; border-radius: var(--radius); box-shadow: var(--shadow); background: white; display: flex; flex-direction: column;">
+                <span class="stat-value" style="font-size: 1.5rem;">${tipo === 'ventas' || tipo === 'clientes' ? '$' : ''}${promedio}</span>
+                <span class="stat-label">Promedio Diario</span>
             </div>
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-value">${reportData.length}</span>
-                    <span class="stat-label">Registros</span>
-                </div>
+            <div class="stat-card" style="padding: 1rem; border-radius: var(--radius); box-shadow: var(--shadow); background: white; display: flex; flex-direction: column;">
+                <span class="stat-value" style="font-size: 1.5rem;">${reportData.filter(d => d.value > 0).length}</span>
+                <span class="stat-label">Registros Activos</span>
             </div>
         </div>
     `;
@@ -1190,3 +1434,259 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============= AUTENTICACIÓN Y CONTROL DE ROLES (LÍNEA BASE SIGR) =============
+
+function checkAuthSession() {
+    const session = JSON.parse(localStorage.getItem('currentUser'));
+    const loginScreen = document.getElementById('loginScreen');
+    
+    if (session) {
+        // Ocultar pantalla de login
+        loginScreen.classList.add('hidden');
+        
+        // Actualizar datos del perfil de usuario en el sidebar
+        document.getElementById('currentUserName').textContent = `${session.nombre} ${session.apellido}`;
+        document.getElementById('currentUserRole').textContent = session.rol.toUpperCase();
+        
+        // Aplicar restricciones de visualización de módulos según el rol
+        applyRoleRestrictions(session.rol);
+    } else {
+        // Mostrar pantalla de login
+        loginScreen.classList.remove('hidden');
+    }
+}
+
+function handleLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginUser').value;
+    
+    // Buscar usuario en defaultUsuarios o usuarios persistidos
+    const user = usuarios.find(u => u.email === email);
+    if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        showToast(`Sesión iniciada como ${user.nombre} (${user.rol})`);
+        checkAuthSession();
+    } else {
+        showToast('Usuario de prueba no válido', 'error');
+    }
+}
+
+function handleLogoutClick() {
+    localStorage.removeItem('currentUser');
+    showToast('Sesión cerrada con éxito');
+    
+    // Volver al módulo de pedidos por defecto
+    switchModule('pedidos');
+    
+    checkAuthSession();
+}
+
+function applyRoleRestrictions(role) {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        const module = item.dataset.module;
+        
+        if (role === 'admin') {
+            item.style.display = 'flex';
+        } else if (role === 'mesero') {
+            // El mesero solo puede gestionar Pedidos, Reservas y Clientes
+            if (['pedidos', 'reservas', 'clientes'].includes(module)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        } else if (role === 'cocinero') {
+            // El cocinero solo ve Pedidos (para la cola de producción) y Menú
+            if (['pedidos', 'menu'].includes(module)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        }
+    });
+    
+    // Si el usuario se encuentra en un módulo restringido, redirigirlo a Pedidos
+    if (role === 'mesero' && !['pedidos', 'reservas', 'clientes'].includes(currentModule)) {
+        switchModule('pedidos');
+    } else if (role === 'cocinero' && !['pedidos', 'menu'].includes(currentModule)) {
+        switchModule('pedidos');
+    }
+}
+
+// ============= BUSCADOR GLOBAL CONTEXTUAL (LÍNEA BASE SIGR) =============
+
+function handleGlobalSearch(e) {
+    const term = e.target.value.toLowerCase().trim();
+    
+    if (currentModule === 'pedidos') {
+        const registrarTabActive = document.querySelector('.pedidos-tabs [data-tab="registrar"]').classList.contains('active');
+        if (registrarTabActive) {
+            const grid = document.getElementById('menuGrid');
+            let filtered = menuData.filter(dish => 
+                dish.name.toLowerCase().includes(term) || 
+                dish.description.toLowerCase().includes(term)
+            );
+            
+            const category = document.getElementById('categoryFilter').value;
+            if (category !== 'all') {
+                filtered = filtered.filter(item => item.category === category);
+            }
+            
+            grid.innerHTML = filtered.map(dish => `
+                <div class="menu-card ${dish.available ? '' : 'unavailable'}">
+                    <div class="card-image">
+                        <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/400x300?text=Plato'">
+                    </div>
+                    <div class="card-content">
+                        <h3>${dish.name}</h3>
+                        <p>${dish.description}</p>
+                        <div class="card-footer">
+                            <span class="price">$${dish.price.toFixed(2)}</span>
+                            <button class="add-btn" onclick="addToCart(${dish.id})" ${dish.available ? '' : 'disabled'}>
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            const tbody = document.getElementById('pedidosTableBody');
+            const statusFilter = document.getElementById('orderStatusFilter').value;
+            let filtered = pedidos.filter(p => 
+                p.cliente.toLowerCase().includes(term) || 
+                p.id.toString().includes(term) ||
+                p.items.some(i => i.name.toLowerCase().includes(term))
+            );
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(p => p.estado === statusFilter);
+            }
+            filtered.sort((a, b) => b.id - a.id);
+            tbody.innerHTML = filtered.map(p => {
+                const platillosStr = p.items.map(item => `${item.name} (${item.quantity})`).join(', ');
+                const mesaDetalle = p.tipo === 'mesa' ? `Mesa ${p.mesa}` : 'A domicilio';
+                return `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td><strong>${p.cliente}</strong></td>
+                        <td><span style="text-transform: capitalize;">${p.tipo}</span></td>
+                        <td>${mesaDetalle}</td>
+                        <td title="${platillosStr}"><span class="ellipsis" style="max-width: 250px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${platillosStr}</span></td>
+                        <td><strong>$${p.total.toFixed(2)}</strong></td>
+                        <td><span class="status-badge status-${p.estado}">${p.estado}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                ${p.estado === 'pendiente' ? `
+                                    <button class="btn-edit" onclick="updatePedidoEstado(${p.id}, 'completado')" title="Completar Pedido" style="color: var(--success);">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn-delete" onclick="updatePedidoEstado(${p.id}, 'cancelado')" title="Cancelar Pedido">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                ` : ''}
+                                ${p.estado === 'completado' ? `
+                                    <button class="btn-edit" onclick="generarFacturaDesdePedido(${p.id})" title="Generar Factura" style="color: #3f51b5;">
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    </button>
+                                ` : ''}
+                                <button class="btn-delete" onclick="deletePedido(${p.id})" title="Eliminar del Historial">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    } else if (currentModule === 'clientes') {
+        const clientSearch = document.getElementById('clienteSearch');
+        clientSearch.value = term;
+        renderClientes();
+    } else if (currentModule === 'menu') {
+        const grid = document.getElementById('menuManagementGrid');
+        const category = document.getElementById('menuCategoryFilter').value;
+        let filtered = menuData.filter(dish => 
+            dish.name.toLowerCase().includes(term) || 
+            dish.description.toLowerCase().includes(term)
+        );
+        if (category !== 'all') {
+            filtered = filtered.filter(item => item.category === category);
+        }
+        grid.innerHTML = filtered.map(dish => `
+            <div class="menu-management-card">
+                <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/80?text=Plato'">
+                <div class="menu-management-info">
+                    <h3>${dish.name}</h3>
+                    <span class="category-badge">${categoryLabels[dish.category]}</span>
+                    <span class="price">$${dish.price.toFixed(2)}</span>
+                    <div class="menu-management-actions">
+                        <button class="btn-edit" onclick="editPlatillo(${dish.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deletePlatillo(${dish.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } else if (currentModule === 'reservas') {
+        const tbody = document.getElementById('reservasTableBody');
+        const fecha = document.getElementById('reservaFecha').value;
+        let filtered = reservas.filter(r => 
+            r.cliente.toLowerCase().includes(term) || 
+            r.telefono.includes(term)
+        );
+        if (fecha) {
+            filtered = filtered.filter(r => r.fecha === fecha);
+        }
+        tbody.innerHTML = filtered.map(reserva => `
+            <tr>
+                <td>${reserva.cliente}</td>
+                <td>${reserva.telefono}</td>
+                <td>${formatDate(reserva.fecha)}</td>
+                <td>${reserva.hora}</td>
+                <td>Mesa ${reserva.mesa}</td>
+                <td>${reserva.personas}</td>
+                <td><span class="status-badge status-${reserva.estado}">${reserva.estado}</span></td>
+                <td>
+                    ${reserva.estado === 'pendiente' ? `
+                        <button class="btn-edit" onclick="updateReservaEstado(${reserva.id}, 'confirmada')" title="Confirmar">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn-delete" onclick="updateReservaEstado(${reserva.id}, 'cancelada')" title="Cancelar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
+    } else if (currentModule === 'facturas') {
+        const tbody = document.getElementById('facturasTableBody');
+        let filtered = facturas.filter(f => 
+            f.cliente.toLowerCase().includes(term) || 
+            f.id.toString().includes(term)
+        );
+        tbody.innerHTML = filtered.map(factura => `
+            <tr>
+                <td>#${factura.id}</td>
+                <td>${factura.cliente}</td>
+                <td>${formatDate(factura.fecha)}</td>
+                <td>${factura.tipo}</td>
+                <td>$${factura.total.toFixed(2)}</td>
+                <td><span class="status-badge status-${factura.estado}">${factura.estado}</span></td>
+                <td>
+                    <button class="btn-edit" onclick="viewFactura(${factura.id})" title="Ver">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${factura.estado === 'pendiente' ? `
+                        <button class="btn-edit" onclick="updateFacturaEstado(${factura.id}, 'pagada')" title="Pagar">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `).join('');
+    }
+}
