@@ -80,7 +80,7 @@ La gestión de configuración y control de versiones del proyecto se rige bajo l
 * **Herramienta de Control de Versiones:** Git (Sistema de Control de Versiones Distribuido).
 * **Repositorio Oficial de Desarrollo:** [https://github.com/ljgarciap/tallerRestaurante](https://github.com/ljgarciap/tallerRestaurante)
 * **Rama Principal Estable:** `master` (Rama protegida sobre la cual se declara la estabilidad y se realizan despliegues de producción).
-* **Commits Incluidos en la Línea Base:** Historial completo del código fuente inicial estable desde el commit inicial identificado con el Hash `7a719be` hasta el commit estable del hito identificado con el Hash `1c87c44`.
+* **Commits Incluidos en la Línea Base:** Historial completo del código fuente inicial estable identificado con el Hash de Git: `7a719be`.
 * **Esquema de Versionado:** Versionamiento Semántico (SemVer) bajo el hito **v1.0.0**.
 
 ---

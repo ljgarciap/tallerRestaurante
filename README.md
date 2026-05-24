@@ -98,7 +98,7 @@ Para probar los flujos restringidos por roles, puedes iniciar sesión utilizando
 
 - **Repositorio Oficial**: https://github.com/ljgarciap/tallerRestaurante
 - **Rama Estable de Referencia**: master
-- **Hash del Último Commit del Hito**: 1c87c44
+- **Hash del Último Commit del Hito**: 7a719be
 - **Herramientas de Soporte**:
   - Control de Versiones: Git & GitHub.
   - Gestión de Incidencias: GitHub Issues (para el registro de bugs futuros).
