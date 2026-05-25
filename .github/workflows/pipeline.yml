@@ -1,0 +1,148 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Pipeline CI/CD — SIGR "El Gourmet"
+# Repositorio: https://github.com/ljgarciap/tallerRestaurante
+# Rama principal: master
+# ──────────────────────────────────────────────────────────────────────────────
+name: CI/CD Pipeline — SIGR Restaurante
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  # ── ETAPA 1: Validar estructura del proyecto ──────────────────────────────
+  validate-structure:
+    name: "Validar Estructura del Proyecto"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código fuente
+        uses: actions/checkout@v4
+
+      - name: Verificar archivos críticos del SIGR
+        run: |
+          echo "Verificando archivos requeridos..."
+          FILES=("index.html" "css/styles.css" "js/script.js" "README.md" "CHANGELOG.md" "LICENSE.txt")
+          ALL_OK=true
+          for f in "${FILES[@]}"; do
+            if [ -f "$f" ]; then
+              SIZE=$(du -h "$f" | cut -f1)
+              echo "  [OK] $f ($SIZE)"
+            else
+              echo "  [FAIL] $f — ARCHIVO FALTANTE"
+              ALL_OK=false
+            fi
+          done
+          $ALL_OK || exit 1
+
+      - name: Verificar referencias en index.html
+        run: |
+          echo "Verificando contenido de index.html..."
+          grep -q "styles.css"    index.html && echo "  [OK] CSS vinculado correctamente"   || (echo "  [FAIL] styles.css no referenciado" && exit 1)
+          grep -q "script.js"     index.html && echo "  [OK] JS vinculado correctamente"    || (echo "  [FAIL] script.js no referenciado"  && exit 1)
+          grep -q "localStorage"  index.html && echo "  [OK] localStorage presente"        || echo "  [WARN] localStorage no encontrado en HTML (puede estar en JS)"
+          grep -q "<!DOCTYPE"     index.html && echo "  [OK] DOCTYPE declarado"            || (echo "  [FAIL] DOCTYPE faltante" && exit 1)
+          echo "[OK] index.html valido"
+
+  # ── ETAPA 2: Análisis estático con ESLint ─────────────────────────────────
+  static-analysis:
+    name: "Analisis Estatico (ESLint)"
+    runs-on: ubuntu-latest
+    needs: validate-structure
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar ESLint en js/script.js
+        run: |
+          echo "Analizando js/script.js con ESLint..."
+          npm run lint
+          echo "[OK] Analisis estatico completado sin errores"
+
+  # ── ETAPA 3: Pruebas unitarias con Jest ───────────────────────────────────
+  unit-tests:
+    name: "Pruebas Unitarias (Jest)"
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar suite de pruebas con cobertura
+        run: |
+          echo "Ejecutando pruebas unitarias del SIGR..."
+          npm test -- --verbose
+          echo "[OK] Todas las pruebas pasaron"
+
+      - name: Publicar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  # ── ETAPA 4: Validación de estructura (Node) ──────────────────────────────
+  validate-content:
+    name: "Validacion de Contenido"
+    runs-on: ubuntu-latest
+    needs: validate-structure
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar validador de estructura
+        run: node tests/validate-structure.js
+
+  # ── ETAPA 5: Deploy a GitHub Pages ────────────────────────────────────────
+  deploy:
+    name: "Deploy a GitHub Pages"
+    runs-on: ubuntu-latest
+    needs: [ unit-tests, validate-content ]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar archivos para despliegue
+        run: |
+          echo "Preparando despliegue del SIGR..."
+          echo "  Archivos a desplegar:"
+          ls -lh index.html css/styles.css js/script.js
+          echo "  [OK] Proyecto listo para GitHub Pages"
+
+      - name: Deploy a GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          exclude_assets: '.github,node_modules,tests,coverage,*.md,package*.json,.eslintrc.json'
+          commit_message: "Deploy automatico CI/CD — ${{ github.sha }}"
+
+      - name: Verificar despliegue
+        run: |
+          echo "[OK] Despliegue completado"
+          echo "URL: https://ljgarciap.github.io/tallerRestaurante/"
+          echo "Commit: ${{ github.sha }}"

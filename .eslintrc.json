@@ -1,0 +1,28 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2021
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "no-undef": "error",
+    "eqeqeq": "warn",
+    "no-console": "off"
+  },
+  "globals": {
+    "localStorage": "readonly",
+    "document": "readonly",
+    "window": "readonly",
+    "Date": "readonly",
+    "setTimeout": "readonly",
+    "clearTimeout": "readonly",
+    "console": "readonly",
+    "alert": "readonly",
+    "confirm": "readonly",
+    "fetch": "readonly"
+  }
+}

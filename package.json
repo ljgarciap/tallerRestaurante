@@ -1,0 +1,22 @@
+{
+  "name": "sigr-restaurante",
+  "version": "1.0.0",
+  "description": "Sistema Integral de Gestión de Restaurante - El Gourmet",
+  "scripts": {
+    "test": "jest --coverage",
+    "lint": "eslint js/script.js --max-warnings 0",
+    "validate": "node tests/validate-structure.js"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.57.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "lines": 60
+      }
+    }
+  }
+}

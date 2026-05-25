@@ -46,14 +46,22 @@ Este repositorio y su versión actual representan el establecimiento de la Líne
 La estructura de archivos de la línea base es limpia y modular:
 ```
 TallerRestaurante/
-├── index.html                  # Archivo raíz y estructura de módulos/modales
+├── .github/workflows/
+│   └── pipeline.yml            # Pipeline automatizado de CI/CD (GitHub Actions)
 ├── css/
 │   └── styles.css              # Hoja de estilos premium (Glassmorphism, Responsive, Impresión)
 ├── js/
 │   └── script.js               # Lógica del estado de la app, auth, CRUD, reportes y utilidades
+├── tests/
+│   ├── logica.test.js          # Suite de pruebas unitarias con Jest
+│   └── validate-structure.js   # Script validador estructural del proyecto
 ├── assets/                     # Recursos visuales e imágenes de la marca
+├── .eslintrc.json              # Configuración de linter (ESLint)
+├── .gitignore                  # Oclusión de node_modules y archivos del sistema
 ├── LICENSE.txt                 # Licencia oficial de distribución MIT
 ├── CHANGELOG.md                # Historial detallado de cambios y línea base
+├── package.json                # Configuración de NodeJS, Jest y scripts npm
+├── index.html                  # Archivo raíz y estructura de módulos/modales
 └── README.md                   # Manual técnico y guía de despliegue (Este archivo)
 ```
 
@@ -79,6 +87,25 @@ Dado que el proyecto utiliza tecnologías nativas vanilla y almacena informació
 
 - Simplemente haz doble clic en index.html para abrir la aplicación directamente en cualquier navegador moderno (Chrome, Edge, Firefox, Safari).
 - Recomendación opcional: Para una mejor experiencia de desarrollo, puedes usar la extensión Live Server en VS Code.
+
+### 4. Pruebas Unitarias y Calidad de Código
+Si deseas ejecutar la suite de pruebas automatizadas y el análisis estático de linter localmente en tu máquina, realiza los siguientes pasos adicionales:
+- Instala las dependencias del proyecto ejecutando:
+  ```bash
+  npm install
+  ```
+- Ejecuta la suite de pruebas unitarias con Jest y obtén el reporte de cobertura de líneas:
+  ```bash
+  npm test
+  ```
+- Ejecuta el linter con ESLint para validar la calidad del código:
+  ```bash
+  npm run lint
+  ```
+- Ejecuta el script de validación de estructura:
+  ```bash
+  npm run validate
+  ```
 
 ---
 

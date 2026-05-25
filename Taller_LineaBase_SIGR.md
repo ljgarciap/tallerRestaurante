@@ -99,7 +99,7 @@ Para que esta entrega de software sea declarada formalmente como la **Línea Bas
 ### 4.5. Herramientas de Soporte
 * **Git & GitHub:** Herramientas troncales para el almacenamiento del código fuente, ramificación (`branching`), control de versiones distribuidas y etiquetado de hitos estables (*releases*).
 * **GitHub Issues:** Plataforma para el registro, categorización y seguimiento detallado de mejoras funcionales, refactorización de código y corrección de bugs (*bug tracking*).
-* **Jenkins / GitHub Actions (Despliegue Futuro):** Herramientas opcionales proyectadas para automatizar la integración continua (CI) y entrega continua (CD) una vez que se inicie el desarrollo sobre la línea base.
+* **GitHub Actions (CI/CD Totalmente Implementado):** Integración Continua y Despliegue Continuo automatizados en cada `push` o `pull_request` a la rama `master`. El pipeline valida la estructura del proyecto, realiza análisis estático con **ESLint**, ejecuta la suite de pruebas unitarias con **Jest** (umbral de cobertura mínimo del 60%) y realiza el despliegue automático del sistema a **GitHub Pages** en la URL: [https://ljgarciap.github.io/tallerRestaurante/](https://ljgarciap.github.io/tallerRestaurante/).
 
 ---
 

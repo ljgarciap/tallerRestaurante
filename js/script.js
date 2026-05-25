@@ -343,7 +343,7 @@ function renderMenu() {
     grid.innerHTML = filtered.map(dish => `
         <div class="menu-card ${dish.available ? '' : 'unavailable'}">
             <div class="card-image">
-                <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/400x300?text=Plato'">
+                <img src="${dish.image}" alt="${dish.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Plato';">
             </div>
             <div class="card-content">
                 <h3>${dish.name}</h3>
@@ -393,7 +393,7 @@ function renderCart() {
         empty.style.display = 'none';
         container.innerHTML = cart.map(item => `
             <div class="cart-item">
-                <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/50?text='">
+                <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/50?text=';">
                 <div class="cart-item-info">
                     <h4>${item.name}</h4>
                     <span class="price">$${item.price.toFixed(2)}</span>
@@ -759,7 +759,7 @@ function renderMenuManagement() {
 
     grid.innerHTML = filtered.map(dish => `
         <div class="menu-management-card">
-            <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/80?text=Plato'">
+            <img src="${dish.image}" alt="${dish.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=Plato';">
             <div class="menu-management-info">
                 <h3>${dish.name}</h3>
                 <span class="category-badge">${categoryLabels[dish.category]}</span>
@@ -1537,7 +1537,7 @@ function handleGlobalSearch(e) {
             grid.innerHTML = filtered.map(dish => `
                 <div class="menu-card ${dish.available ? '' : 'unavailable'}">
                     <div class="card-image">
-                        <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/400x300?text=Plato'">
+                        <img src="${dish.image}" alt="${dish.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Plato';">
                     </div>
                     <div class="card-content">
                         <h3>${dish.name}</h3>
@@ -1615,7 +1615,7 @@ function handleGlobalSearch(e) {
         }
         grid.innerHTML = filtered.map(dish => `
             <div class="menu-management-card">
-                <img src="${dish.image}" alt="${dish.name}" onerror="this.src='https://via.placeholder.com/80?text=Plato'">
+                <img src="${dish.image}" alt="${dish.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/80?text=Plato';">
                 <div class="menu-management-info">
                     <h3>${dish.name}</h3>
                     <span class="category-badge">${categoryLabels[dish.category]}</span>
